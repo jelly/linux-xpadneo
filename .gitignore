@@ -1,5 +1,6 @@
 *.ko
 *.o
+*.d
 *.cmd
 *.mod
 *.mod.c
@@ -8,5 +9,6 @@ Module.symvers
 modules.order
 
 /.cache
+/.ccls-cache
 
 compile_commands.json
