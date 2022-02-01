@@ -132,7 +132,7 @@ static u8 *xpadneo_report_fixup(struct hid_device *hdev, u8 *rdesc, unsigned int
 		*rsize -= 1;
 	}
 
-	/* fixup reported axes for Xbox One S */
+	/* fixup reported axes for Xbox One S and Xbox Series X|S */
 	if (*rsize >= 81) {
 		if (rdesc[34] == 0x09 && rdesc[35] == 0x32) {
 			hid_notice(hdev, "fixing up Rx axis\n");
