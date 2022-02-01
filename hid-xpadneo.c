@@ -15,8 +15,8 @@ struct usage_map {
 	u32 usage;
 	enum {
 		MAP_IGNORE = -1,	/* Completely ignore this field */
-		MAP_AUTO,	/* Do not really map it, let hid-core decide */
-		MAP_STATIC	/* Map to the values given */
+		MAP_AUTO,		/* Do not really map it, let hid-core decide */
+		MAP_STATIC		/* Map to the values given */
 	} behaviour;
 	struct {
 		u8 event_type;	/* input event (EV_KEY, EV_ABS, ...) */
@@ -101,12 +101,6 @@ static int xpadneo_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 				 struct hid_usage *usage, unsigned long **bit, int *max)
 {
 	int i = 0;
-
-	if (usage->hid == HID_DC_BATTERYSTRENGTH) {
-		hid_info(hdev, "battery detected\n");
-
-		return MAP_IGNORE;
-	}
 
 	for (i = 0; i < ARRAY_SIZE(xpadneo_usage_maps); i++) {
 		const struct usage_map *entry = &xpadneo_usage_maps[i];
