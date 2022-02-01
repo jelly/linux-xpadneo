@@ -11,6 +11,12 @@
 #define BTN_SHARE KEY_RECORD
 #define BTN_XBOX  KEY_MODE
 
+#define FIX_SHARE_BUTTON 0x01
+
+struct xpadneo_sc {
+	unsigned long quirks;
+};
+
 struct usage_map {
 	u32 usage;
 	enum {
@@ -175,6 +181,7 @@ static u8 *xpadneo_report_fixup(struct hid_device *hdev, u8 *rdesc, unsigned int
 static int xpadneo_raw_event(struct hid_device *hdev, struct hid_report *report,
 			     u8 *data, int reportsize)
 {
+	struct xpadneo_sc *xsc = hid_get_drvdata(hdev);
 	/* correct button mapping of Xbox controllers in Linux mode */
 	if (report->id == 1 && reportsize >= 17) {
 		u16 bits = 0;
@@ -183,7 +190,7 @@ static int xpadneo_raw_event(struct hid_device *hdev, struct hid_report *report,
 		bits |= (data[14] & (BIT(3) | BIT(4))) >> 1;	/* X, Y */
 		bits |= (data[14] & (BIT(6) | BIT(7))) >> 2;	/* LB, RB */
 
-		if (1) // share button quirk
+		if (xsc->quirks & FIX_SHARE_BUTTON)
 			bits |= (data[15] & BIT(2)) << 4;	/* Back */
 		else
 			bits |= (data[16] & BIT(0)) << 6;	/* Back */
@@ -193,7 +200,7 @@ static int xpadneo_raw_event(struct hid_device *hdev, struct hid_report *report,
 		bits |= (data[15] & BIT(6)) << 3;	/* RS */
 		bits |= (data[15] & BIT(4)) << 6;	/* Xbox */
 
-		if (1) // share button quirk
+		if (xsc->quirks & FIX_SHARE_BUTTON)
 			bits |= (data[16] & BIT(0)) << 11;	/* Share */
 
 		data[14] = (u8)((bits >> 0) & 0xFF);
@@ -206,9 +213,20 @@ static int xpadneo_raw_event(struct hid_device *hdev, struct hid_report *report,
 
 static int xpadneo_probe(struct hid_device *hdev, const struct hid_device_id *id)
 {
+	unsigned long quirks = id->driver_data;
+	struct xpadneo_sc *xsc;
 	int ret;
 
 	hid_info(hdev, "xpadneo custom version");
+
+	xsc = devm_kzalloc(&hdev->dev, sizeof(*xsc), GFP_KERNEL);
+	if (xsc == NULL) {
+		hid_err(hdev, "can't alloc xpadneo descriptor\n");
+		return -ENOMEM;
+	}
+
+	xsc->quirks = quirks;
+	hid_set_drvdata(hdev, xsc);
 
 	ret = hid_parse(hdev);
 	if (ret) {
@@ -232,7 +250,8 @@ static const struct hid_device_id xpadneo_devices[] = {
 	/* XBOX ONE Elite Series 2 */
 	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_MICROSOFT, 0x0B05) },
 	/* XBOX Series X|S */
-	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_MICROSOFT, 0x0B13) },
+	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_MICROSOFT, 0x0B13),
+		.driver_data = FIX_SHARE_BUTTON },
 	{ }
 };
 MODULE_DEVICE_TABLE(hid, xpadneo_devices);
