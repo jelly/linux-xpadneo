@@ -9,7 +9,7 @@
 
 #define FIX_SHARE_BUTTON 0x01
 
-struct xpadneo_sc {
+struct microsoft_xbox_sc {
 	unsigned long quirks;
 };
 
@@ -31,7 +31,7 @@ struct usage_map {
 #define USAGE_IGN(u) USAGE_MAP(u, MAP_IGNORE, 0, 0)
 
 
-static const struct usage_map xpadneo_usage_maps[] = {
+static const struct usage_map microsoft_xbox_usage_maps[] = {
 	/* fixup buttons to Linux codes */
 	USAGE_MAP(0x90001, MAP_STATIC, EV_KEY, BTN_A),	/* A */
 	USAGE_MAP(0x90002, MAP_STATIC, EV_KEY, BTN_B),	/* B */
@@ -97,19 +97,19 @@ static const struct usage_map xpadneo_usage_maps[] = {
 	USAGE_IGN(0xC00B9),	/* KEY_SHUFFLE button */
 };
 
-#define xpadneo_map_usage_clear(ev) hid_map_usage_clear(hi, usage, bit, max, (ev).event_type, (ev).input_code)
-static int xpadneo_input_mapping(struct hid_device *hdev, struct hid_input *hi,
+#define microsoft_xbox_map_usage_clear(ev) hid_map_usage_clear(hi, usage, bit, max, (ev).event_type, (ev).input_code)
+static int microsoft_xbox_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 				 struct hid_field *field,
 				 struct hid_usage *usage, unsigned long **bit, int *max)
 {
 	int i = 0;
 
-	for (i = 0; i < ARRAY_SIZE(xpadneo_usage_maps); i++) {
-		const struct usage_map *entry = &xpadneo_usage_maps[i];
+	for (i = 0; i < ARRAY_SIZE(microsoft_xbox_usage_maps); i++) {
+		const struct usage_map *entry = &microsoft_xbox_usage_maps[i];
 
 		if (entry->usage == usage->hid) {
 			if (entry->behaviour == MAP_STATIC)
-				xpadneo_map_usage_clear(entry->ev);
+				microsoft_xbox_map_usage_clear(entry->ev);
 			return entry->behaviour;
 		}
 	}
@@ -118,7 +118,7 @@ static int xpadneo_input_mapping(struct hid_device *hdev, struct hid_input *hi,
 	return MAP_AUTO;
 }
 
-static u8 *xpadneo_report_fixup(struct hid_device *hdev, u8 *rdesc, unsigned int *rsize)
+static u8 *microsoft_xbox_report_fixup(struct hid_device *hdev, u8 *rdesc, unsigned int *rsize)
 {
 	hid_info(hdev, "report descriptor size: %d bytes\n", *rsize);
 
@@ -168,10 +168,10 @@ static u8 *xpadneo_report_fixup(struct hid_device *hdev, u8 *rdesc, unsigned int
 	return rdesc;
 }
 
-static int xpadneo_raw_event(struct hid_device *hdev, struct hid_report *report,
+static int microsoft_xbox_raw_event(struct hid_device *hdev, struct hid_report *report,
 			     u8 *data, int reportsize)
 {
-	struct xpadneo_sc *xsc = hid_get_drvdata(hdev);
+	struct microsoft_xbox_sc *xsc = hid_get_drvdata(hdev);
 	/* correct button mapping of Xbox controllers in Linux mode */
 	if (report->id == 1 && reportsize >= 17) {
 		u16 bits = 0;
@@ -201,17 +201,15 @@ static int xpadneo_raw_event(struct hid_device *hdev, struct hid_report *report,
 	return 0;
 }
 
-static int xpadneo_probe(struct hid_device *hdev, const struct hid_device_id *id)
+static int microsoft_xbox_probe(struct hid_device *hdev, const struct hid_device_id *id)
 {
 	unsigned long quirks = id->driver_data;
-	struct xpadneo_sc *xsc;
+	struct microsoft_xbox_sc *xsc;
 	int ret;
-
-	hid_info(hdev, "xpadneo custom version");
 
 	xsc = devm_kzalloc(&hdev->dev, sizeof(*xsc), GFP_KERNEL);
 	if (xsc == NULL) {
-		hid_err(hdev, "can't alloc xpadneo descriptor\n");
+		hid_err(hdev, "can't alloc microsoft_xbox descriptor\n");
 		return -ENOMEM;
 	}
 
@@ -233,7 +231,7 @@ static int xpadneo_probe(struct hid_device *hdev, const struct hid_device_id *id
 	return 0;
 }
 
-static const struct hid_device_id xpadneo_devices[] = {
+static const struct hid_device_id microsoft_xbox_devices[] = {
 	/* XBOX ONE S / X */
 	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_MICROSOFT, 0x02FD) },
 	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_MICROSOFT, 0x02E0) },
@@ -244,17 +242,17 @@ static const struct hid_device_id xpadneo_devices[] = {
 		.driver_data = FIX_SHARE_BUTTON },
 	{ }
 };
-MODULE_DEVICE_TABLE(hid, xpadneo_devices);
+MODULE_DEVICE_TABLE(hid, microsoft_xbox_devices);
 
-static struct hid_driver xpadneo_driver = {
-	.name = "xpadneo",
-	.id_table = xpadneo_devices,
-	.input_mapping = xpadneo_input_mapping,
-	.report_fixup = xpadneo_report_fixup,
-	.raw_event = xpadneo_raw_event,
-	.probe = xpadneo_probe,
+static struct hid_driver microsoft_xbox_driver = {
+	.name = "microsoft_xbox",
+	.id_table = microsoft_xbox_devices,
+	.input_mapping = microsoft_xbox_input_mapping,
+	.report_fixup = microsoft_xbox_report_fixup,
+	.raw_event = microsoft_xbox_raw_event,
+	.probe = microsoft_xbox_probe,
 };
-module_hid_driver(xpadneo_driver);
+module_hid_driver(microsoft_xbox_driver);
 
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Florian Dollinger <dollinger.florian@gmx.de>");

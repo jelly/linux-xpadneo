@@ -1,4 +1,4 @@
-obj-m += hid-xpadneo.o
+obj-m += hid-microsoft-xbox.o
 
 SRC := $(shell pwd)
 KVER=$(shell uname -r)
