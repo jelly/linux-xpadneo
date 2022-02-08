@@ -9,3 +9,6 @@ all:
 
 modules_install:
 	make -C $(KDIR) M=$(SRC) modules_install
+
+compile_commands.json: $(SRC)
+	bear -- make -n -B
