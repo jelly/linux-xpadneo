@@ -7,10 +7,6 @@
 
 #include "hid-ids.h"
 
-/* button aliases */
-#define BTN_SHARE KEY_RECORD
-#define BTN_XBOX  KEY_MODE
-
 #define FIX_SHARE_BUTTON 0x01
 
 struct xpadneo_sc {
@@ -49,16 +45,16 @@ static const struct usage_map xpadneo_usage_maps[] = {
 	USAGE_MAP(0x9000A, MAP_STATIC, EV_KEY, BTN_THUMBR),	/* RS */
 
 	/* fixup the Xbox logo button */
-	USAGE_MAP(0x9000B, MAP_STATIC, EV_KEY, BTN_XBOX),	/* Xbox */
+	USAGE_MAP(0x9000B, MAP_STATIC, EV_KEY, KEY_MODE),	/* Xbox */
 
 	/* fixup the Share button */
-	USAGE_MAP(0x9000C, MAP_STATIC, EV_KEY, BTN_SHARE),	/* Share */
+	USAGE_MAP(0x9000C, MAP_STATIC, EV_KEY, KEY_RECORD),	/* Share */
 
 	/* fixup code "Sys Main Menu" from Windows report descriptor */
-	USAGE_MAP(0x10085, MAP_STATIC, EV_KEY, BTN_XBOX),
+	USAGE_MAP(0x10085, MAP_STATIC, EV_KEY, KEY_MODE),
 
 	/* fixup code "AC Home" from Linux report descriptor */
-	USAGE_MAP(0xC0223, MAP_STATIC, EV_KEY, BTN_XBOX),
+	USAGE_MAP(0xC0223, MAP_STATIC, EV_KEY, KEY_MODE),
 
 	/* fixup code "AC Back" from Linux report descriptor */
 	USAGE_MAP(0xC0224, MAP_STATIC, EV_KEY, BTN_SELECT),
