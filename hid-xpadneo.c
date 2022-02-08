@@ -122,12 +122,6 @@ static u8 *xpadneo_report_fixup(struct hid_device *hdev, u8 *rdesc, unsigned int
 {
 	hid_info(hdev, "report descriptor size: %d bytes\n", *rsize);
 
-	/* fixup trailing NUL byte */
-	if (rdesc[*rsize - 2] == 0xC0 && rdesc[*rsize - 1] == 0x00) {
-		hid_notice(hdev, "fixing up report descriptor size\n");
-		*rsize -= 1;
-	}
-
 	/* fixup reported axes for Xbox One S and Xbox Series X|S */
 	if (*rsize >= 81) {
 		if (rdesc[34] == 0x09 && rdesc[35] == 0x32) {
