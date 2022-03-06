@@ -7,37 +7,50 @@
 
 #include "hid-ids.h"
 
-#define FIX_SHARE_BUTTON 0x01
+#define XBOX_SERIES_XS BIT(0)
 
 struct microsoft_xbox_sc {
 	unsigned long quirks;
 };
 
 
-#define microsoft_xbox_map_axis_usage_clear(c) hid_map_usage_clear(hi, usage, bit, max, EV_ABS, (c))
-static int microsoft_xbox_input_mapping(struct hid_device *hdev, struct hid_input *hi,
-				 struct hid_field *field,
-				 struct hid_usage *usage, unsigned long **bit, int *max)
+#define microsoft_xbox_map_abs_usage_clear(c) hid_map_usage_clear(hi, usage, bit, max, EV_ABS, (c))
+static int xbox_series_xs_mapping(struct hid_device *hdev, struct hid_input *hi,
+				 struct hid_field *field, struct hid_usage *usage,
+				 unsigned long **bit, int *max)
 {
-        switch (usage->hid) {
+	switch (usage->hid) {
 	case HID_GD_Z:
-		hid_map_usage_clear(hi, usage, bit, max, EV_ABS, ABS_RX);
+		microsoft_xbox_map_abs_usage_clear(ABS_RX);
 		break;
 	case HID_GD_RZ:
-		hid_map_usage_clear(hi, usage, bit, max, EV_ABS, ABS_RY);
+		microsoft_xbox_map_abs_usage_clear(ABS_RY);
 		break;
-	case (HID_UP_SIMULATION | 0x00c4): // gas
-		hid_map_usage_clear(hi, usage, bit, max, EV_ABS, ABS_RZ);
+	case (HID_UP_SIMULATION | 0x00c4): /* gas */
+		microsoft_xbox_map_abs_usage_clear(ABS_RZ);
 		break;
-	case (HID_UP_SIMULATION | 0x00c5): // break
-		hid_map_usage_clear(hi, usage, bit, max, EV_ABS, ABS_Z);
+	case (HID_UP_SIMULATION | 0x00c5): /* break */
+		microsoft_xbox_map_abs_usage_clear(ABS_Z);
 		break;
 	default:
 		return 0;
 	}
 
-	/* let HID handle this */
 	return 1;
+}
+
+static int microsoft_xbox_input_mapping(struct hid_device *hdev, struct hid_input *hi,
+				 struct hid_field *field, struct hid_usage *usage,
+				 unsigned long **bit, int *max)
+{
+	struct microsoft_xbox_sc *sc = hid_get_drvdata(hdev);
+
+	if (sc->quirks & XBOX_SERIES_XS) {
+		return xbox_series_xs_mapping(hdev, hi, field, usage, bit, max);
+	}
+
+	/* let hid-core decide for the others */
+	return 0;
 }
 
 static int microsoft_xbox_probe(struct hid_device *hdev, const struct hid_device_id *id)
@@ -67,18 +80,20 @@ static int microsoft_xbox_probe(struct hid_device *hdev, const struct hid_device
 		return ret;
 	}
 
+	hid_err(hdev, "started driver\n");
+
 	return 0;
 }
 
 static const struct hid_device_id microsoft_xbox_devices[] = {
-	/* XBOX ONE S / X */
-	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_MICROSOFT, 0x02FD) },
+	/* XBOX ONE S / X model name 1708 */
 	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_MICROSOFT, 0x02E0) },
+	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_MICROSOFT, 0x02FD) },
 	/* XBOX ONE Elite Series 2 */
 	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_MICROSOFT, 0x0B05) },
-	/* XBOX Series X|S */
+	/* XBOX Series X|S model name 1914*/
 	{ HID_BLUETOOTH_DEVICE(USB_VENDOR_ID_MICROSOFT, 0x0B13),
-		.driver_data = FIX_SHARE_BUTTON },
+		.driver_data = XBOX_SERIES_XS },
 	{ }
 };
 MODULE_DEVICE_TABLE(hid, microsoft_xbox_devices);
@@ -92,6 +107,4 @@ static struct hid_driver microsoft_xbox_driver = {
 module_hid_driver(microsoft_xbox_driver);
 
 MODULE_LICENSE("GPL");
-MODULE_AUTHOR("Florian Dollinger <dollinger.florian@gmx.de>");
-MODULE_AUTHOR("Kai Krakow <kai@kaishome.de>");
 MODULE_AUTHOR("Jelle van der Waa <jvanderwaa@redhat.com>");
